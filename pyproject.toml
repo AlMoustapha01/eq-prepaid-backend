@@ -1,0 +1,67 @@
+[project]
+name = "eq-prepaid-backend"
+version = "0.1.0"
+description = "Equation Prepaid Backend"
+authors = [
+    {name = "Al Moustapha",email = "doumbiaalmoustapha@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.13,<4.0"
+dependencies = [
+    "fastapi[standard] (>=0.116.1,<0.117.0)",
+    "uvicorn (>=0.35.0,<0.36.0)",
+    "pydantic (>=2.11.7,<3.0.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)",
+    "sqlalchemy (>=2.0.43,<3.0.0)",
+    "alembic (>=1.16.5,<2.0.0)",
+    "httpx (>=0.28.1,<0.29.0)"
+]
+
+[tool.poetry]
+packages = [{include = "eq_prepaid_backend", from = "src"}]
+
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^4.3.0"
+ruff = "^0.12.11"
+bandit = "^1.8.6"
+pylint = "^3.3.8"
+poetry-plugin-export = "^1.9.0"
+
+[tool.ruff]
+lint.select = ["ALL"]
+lint.ignore = [
+    "BLE001",
+    "COM812",
+    "ISC001",
+    "D100",
+    "D104",
+    "D105",
+    "D107",
+    "D205",
+    "D211",
+    "D212",
+    "E203",
+    "E266",
+    "ANN101",
+    "ANN102",
+    "ANN204",
+    "S602",
+    "ERA001",
+    "PLR0913",
+    "N803",
+    "N815",
+]
+target-version = "py310"
+line-length = 100
+
+[tool.bandit]
+exclude_dirs = [
+    ".venv",
+    ".git",
+    "__pycache__",
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
