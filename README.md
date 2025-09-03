@@ -94,6 +94,7 @@ poetry run pre-commit install
 ### Hooks configurés
 
 #### 1. Hooks de base (pre-commit-hooks)
+
 - **check-added-large-files** : Vérifie qu'aucun fichier volumineux n'est ajouté au repository
 - **check-toml** : Valide la syntaxe des fichiers TOML
 - **check-yaml** : Valide la syntaxe des fichiers YAML
@@ -105,6 +106,7 @@ poetry run pre-commit install
 - **name-tests-test** : Vérifie que les fichiers de test suivent la convention de nommage pytest
 
 #### 2. Ruff (Linting et Formatage)
+
 - **ruff** : Linter Python ultra-rapide avec les règles suivantes :
   - `--select=ALL` : Active toutes les règles disponibles
   - Ignore certaines règles spécifiques (RUF100, BLE001, COM812, etc.)
@@ -113,12 +115,14 @@ poetry run pre-commit install
 - **ruff-format** : Formatage automatique du code Python
 
 #### 3. Pylint
+
 - **pylint** : Analyse statique approfondie du code Python
   - Utilise le fichier de configuration `pylintrc`
   - Exécution parallèle sur plusieurs cœurs (`--jobs=0`)
   - Score minimum requis : 9.0/10 (`--fail-under=9.0`)
 
 #### 4. Bandit
+
 - **bandit** : Scanner de sécurité pour détecter les vulnérabilités communes
   - Configuration via `pyproject.toml`
   - Analyse récursive de tous les fichiers (`-r .`)
@@ -136,6 +140,10 @@ Pour exécuter un hook spécifique :
 ```bash
 poetry run pre-commit run ruff --all-files
 ```
+
+## Support
+
+([https://github.com/n0nuser/fastapi-archetype/tree/main](https://github.com/n0nuser/fastapi-archetype/tree/main))
 
 ## License
 
