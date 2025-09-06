@@ -1,6 +1,4 @@
-"""
-Pytest configuration file to set up the Python path for tests.
-"""
+"""Pytest configuration file to set up the Python path for tests."""
 
 import sys
 from pathlib import Path

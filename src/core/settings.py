@@ -5,7 +5,8 @@ Uses Pydantic for environment variable validation and type checking.
 
 from functools import lru_cache
 
-from pydantic import BaseSettings, Field, validator
+from pydantic import Field, validator
+from pydantic_settings import BaseSettings
 
 
 class PostgreSQLSettings(BaseSettings):
@@ -13,14 +14,19 @@ class PostgreSQLSettings(BaseSettings):
 
     host: str = Field(default="localhost", env="POSTGRES_HOST")
     port: int = Field(default=5432, env="POSTGRES_PORT")
-    user: str = Field(..., env="POSTGRES_USER")
-    password: str = Field(..., env="POSTGRES_PASSWORD")
-    database: str = Field(..., env="POSTGRES_DB")
+    user: str = Field(default="eq_prepaid_user", env="POSTGRES_USER")
+    password: str = Field(default="eq_prepaid_password_123", env="POSTGRES_PASSWORD")
+    database: str = Field(default="eq_prepaid_db", env="POSTGRES_DB")
 
     @property
     def database_url(self) -> str:
         """Generate PostgreSQL connection URL."""
         return f"postgresql://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
+
+    @property
+    def async_database_url(self) -> str:
+        """Generate PostgreSQL async connection URL."""
+        return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
 
     @classmethod
     @validator("port")
@@ -33,6 +39,7 @@ class PostgreSQLSettings(BaseSettings):
     class Config:
         env_prefix = "POSTGRES_"
         case_sensitive = False
+        extra = "allow"
 
 
 class RedisSettings(BaseSettings):
@@ -69,16 +76,51 @@ class RedisSettings(BaseSettings):
     class Config:
         env_prefix = "REDIS_"
         case_sensitive = False
+        extra = "allow"
 
 
 class AppSettings(BaseSettings):
     """Main application configuration settings."""
 
     app_name: str = Field(default="EQ Prepaid Backend", env="APP_NAME")
+    project_description: str = Field(
+        default="Backend API for EQ Prepaid system with rules management", env="PROJECT_DESCRIPTION"
+    )
     debug: bool = Field(default=False, env="DEBUG")
     version: str = Field(default="1.0.0", env="APP_VERSION")
     host: str = Field(default="0.0.0.0", env="APP_HOST")  # nosec B104
     port: int = Field(default=8000, env="APP_PORT")
+
+    # API Configuration
+    api_v1_prefix: str = Field(default="/api/v1", env="API_V1_PREFIX")
+    root_path: str = Field(default="", env="ROOT_PATH")
+
+    # Contact Information
+    contact_name: str = Field(default="EQ Prepaid Team", env="CONTACT_NAME")
+    contact_email: str = Field(default="support@eqprepaid.com", env="CONTACT_EMAIL")
+
+    # Security Settings
+    allowed_hosts: list[str] = Field(
+        default=[
+            "localhost",
+            "127.0.0.1",
+            "*.localhost",
+            "*.eqprepaid.com",  # Replace with your actual domain
+        ],
+        env="ALLOWED_HOSTS",
+    )
+
+    backend_cors_origins: list[str] = Field(
+        default=[
+            "http://localhost:3000",  # React dev server
+            "http://localhost:8080",  # Vue dev server
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:8080",
+            "https://localhost:3000",
+            "https://localhost:8080",
+        ],
+        env="BACKEND_CORS_ORIGINS",
+    )
 
     @classmethod
     @validator("port")
@@ -88,9 +130,28 @@ class AppSettings(BaseSettings):
             raise ValueError("Port must be between 1 and 65535")
         return v
 
+    @validator("backend_cors_origins", pre=True)
+    def assemble_cors_origins(self, v):
+        """Parse CORS origins from environment variable or use defaults."""
+        if isinstance(v, str) and not v.startswith("["):
+            return [i.strip() for i in v.split(",")]
+        if isinstance(v, (list, str)):
+            return v
+        raise ValueError(v)
+
+    @validator("allowed_hosts", pre=True)
+    def assemble_allowed_hosts(self, v):
+        """Parse allowed hosts from environment variable or use defaults."""
+        if isinstance(v, str) and not v.startswith("["):
+            return [i.strip() for i in v.split(",")]
+        if isinstance(v, (list, str)):
+            return v
+        raise ValueError(v)
+
     class Config:
         env_prefix = "APP_"
         case_sensitive = False
+        extra = "allow"
 
 
 class Settings(BaseSettings):
@@ -105,6 +166,7 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = False
+        extra = "allow"
 
 
 @lru_cache

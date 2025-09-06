@@ -177,7 +177,8 @@ class RuleConfig:
         # Validate all referenced parameters exist
         for param_name in referenced_params:
             if param_name not in self.parameters:
-                raise ValueError(f"Parameter '{param_name}' is referenced but not defined")
+                msg = f"Parameter '{param_name}' is referenced but not defined"
+                raise ValueError(msg)
 
     def get_required_parameters(self) -> list[str]:
         """Returns list of required parameter names"""
@@ -187,4 +188,19 @@ class RuleConfig:
         """Returns all table names used in the configuration"""
         tables = [self.from_table.main_table]
         tables.extend([join.table for join in self.joins])
-        return list(set(tables))  # Remove duplicates
+        return tables
+
+    def to_sql(self, parameters: dict[str, Any] | None = None) -> str:
+        """
+        Converts this RuleConfig to SQL query string
+
+        Args:
+            parameters: Optional dictionary of parameter values to substitute
+
+        Returns:
+            Generated SQL query string
+
+        """
+        from modules.rules.domain.services.sql_generator import SqlGenerator
+
+        return SqlGenerator.from_rule_config(self, parameters)

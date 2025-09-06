@@ -13,7 +13,23 @@ from modules.rules.domain.value_objects.rule_config import (
 class SqlGenerator:
     """Service to generate SQL queries from RuleConfig"""
 
-    def generate_sql(self, config: RuleConfig, parameters: dict[str, Any] = None) -> str:
+    @staticmethod
+    def from_rule_config(config: RuleConfig, parameters: dict[str, Any] | None = None) -> str:
+        """
+        Static method to generate SQL from RuleConfig - used by RuleConfig.to_sql()
+
+        Args:
+            config: The RuleConfig to convert to SQL
+            parameters: Dictionary of parameter values to substitute
+
+        Returns:
+            Generated SQL query string
+
+        """
+        generator = SqlGenerator()
+        return generator.generate_sql(config, parameters)
+
+    def generate_sql(self, config: RuleConfig, parameters: dict[str, Any] | None = None) -> str:
         """
         Generates SQL query from RuleConfig
 
@@ -105,9 +121,8 @@ class SqlGenerator:
             )
 
         # For SELECT statements, check basic structure
-        if sql_upper.startswith("SELECT"):
-            if "FROM" not in sql_upper:
-                errors.append("SELECT statement must contain a FROM clause")
+        if sql_upper.startswith("SELECT") and "FROM" not in sql_upper:
+            errors.append("SELECT statement must contain a FROM clause")
 
         return errors
 

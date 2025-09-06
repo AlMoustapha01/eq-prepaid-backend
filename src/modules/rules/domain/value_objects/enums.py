@@ -1,6 +1,4 @@
-"""
-Enums for the rules domain
-"""
+"""Enums for the rules domain"""
 
 from enum import Enum
 

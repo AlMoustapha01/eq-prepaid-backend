@@ -94,11 +94,10 @@ class RuleEntity(BaseEntity):
         config_tables = self.config.get_table_names()
         for table in config_tables:
             if table not in self.database_table_name:
-                raise ValueError(
-                    f"Table '{table}' used in configuration but not listed in database_table_name"
-                )
+                msg = f"Table '{table}' used in configuration but not listed in database_table_name"
+                raise ValueError(msg)
 
-    def generate_sql(self, parameters: dict[str, Any] = None) -> str:
+    def generate_sql(self, parameters: dict[str, Any] | None = None) -> str:
         """
         Generates SQL query from the rule's configuration
 

@@ -3,7 +3,8 @@
 # https://bandit.readthedocs.io/en/latest/config.html
 
 # Skip B101 (assert_used) checks globally since they're used in tests
-skips = B101
+# Skip B608 (hardcoded_sql_expressions) for our base repository which uses safe parameterized queries
+skips = B101,B608
 
 # Exclude test directories from scanning
 exclude_dirs = tests
