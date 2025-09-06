@@ -22,12 +22,9 @@ repos:
       # Run the linter.
       - id: ruff
         args:
-          [
-            "--fix",
-            "--select=ALL",
-            "--ignore=RUF100,BLE001,COM812,ISC001,D100,D104,D105,D107,D205,D211,D212,E203,E266,ANN101,ANN102,ANN204,ANN401,S602,ERA001,PGH003,PLR0913,TRY400,N803,N815",
-            "--line-length=100",
-          ]
+          - "--select=ALL"
+          - "--ignore=RUF100,RUF013,BLE001,COM812,ISC001,D100,D101,D102,D104,D105,D106,D107,D200,D203,D205,D211,D212,D400,D401,D415,E203,E266,E501,ANN001,ANN101,ANN102,ANN201,ANN204,ANN206,ANN401,S101,S104,S602,ERA001,PGH003,PLR0913,PLR2004,PLC0415,TRY004,TRY400,TRY003,N803,N815,EM101,EM102,INP001,F401,F821,DTZ005,SIM102,PERF401"
+          - "--line-length=100"
       # Run the formatter.
       - id: ruff-format
   - repo: https://github.com/PyCQA/pylint

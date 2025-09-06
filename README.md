@@ -144,6 +144,8 @@ poetry run pre-commit run ruff --all-files
 ## Support
 
 ([https://github.com/n0nuser/fastapi-archetype/tree/main](https://github.com/n0nuser/fastapi-archetype/tree/main))
+([https://github.com/benavlabs/FastAPI-boilerplate/tree/main](https://github.com/benavlabs/FastAPI-boilerplate/tree/main))
+([https://github.com/teamhide/fastapi-boilerplate/tree/master](https://github.com/teamhide/fastapi-boilerplate/tree/master))
 
 ## License
 
