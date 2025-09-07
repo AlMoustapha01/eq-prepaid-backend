@@ -39,7 +39,7 @@ class CreateRuleUseCase:
             ValueError: If rule name already exists or validation fails
 
         """
-        logger.info(f"Creating rule with name: {request.name}")
+        logger.info("Creating rule with name: %s", request.name)
 
         # Check if rule with same name already exists
         existing_rule = await self.rule_repository.find_by_name(request.name)
@@ -55,7 +55,7 @@ class CreateRuleUseCase:
             from modules.rules.domain.exceptions import RuleConfigurationError
 
             msg = f"Invalid rule configuration: {e!s}"
-            raise RuleConfigurationError(msg)
+            raise RuleConfigurationError(msg) from e
 
         # Create domain DTO
         create_dto = CreateRuleDto(
@@ -100,7 +100,7 @@ class GetAllRulesPaginatedUseCase:
             Paginated result of rule responses
 
         """
-        logger.info(f"Getting rules - page: {page}, size: {size}")
+        logger.info("Getting rules - page: %s, size: %s", page, size)
 
         # Create pagination params
         pagination = PaginationParams(page=page, size=size)
@@ -148,7 +148,7 @@ class GetRuleSqlByIdUseCase:
             ValueError: If rule not found
 
         """
-        logger.info(f"Getting SQL for rule ID: {rule_id}")
+        logger.info("Getting SQL for rule ID: %s", rule_id)
 
         # Find rule by ID
         rule = await self.rule_repository.find_by_id(rule_id)
@@ -163,8 +163,8 @@ class GetRuleSqlByIdUseCase:
         except Exception as e:
             from modules.rules.domain.exceptions import RuleSqlGenerationError
 
-            msg = f"Failed to generate SQL: {e!s}"
-            raise RuleSqlGenerationError(msg, rule_id=rule_id)
+            msg = "Failed to generate SQL: " + str(e)
+            raise RuleSqlGenerationError(msg, rule_id=rule_id) from e
 
         # Create response
         return GetRulesSqlResponse(
@@ -193,7 +193,7 @@ class GetRuleByIdUseCase:
             ValueError: If rule not found
 
         """
-        logger.info(f"Getting rule by ID: {rule_id}")
+        logger.info("Getting rule by ID: %s", rule_id)
 
         # Find rule by ID
         rule = await self.rule_repository.find_by_id(rule_id)

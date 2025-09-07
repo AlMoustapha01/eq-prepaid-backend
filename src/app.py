@@ -54,7 +54,7 @@ app.add_middleware(
     expose_headers=["X-Request-ID"],
 )
 
-# Correlation ID Middleware for request tracing
+# Correlation ID Middleware
 app.add_middleware(
     CorrelationIdMiddleware,
     header_name="X-Request-ID",
@@ -69,7 +69,13 @@ app.include_router(rule_router, prefix=settings.app.api_v1_prefix)
 
 @app.get("/")
 def read_root() -> dict[str, str]:
-    """Root endpoint returning a welcome message."""
+    """
+    Root endpoint.
+
+    Returns:
+        dict: Application metadata
+
+    """
     return {
         "message": settings.app.app_name,
         "version": settings.app.version,
@@ -79,7 +85,13 @@ def read_root() -> dict[str, str]:
 
 @app.get("/health")
 def health_check() -> dict[str, str]:
-    """Health check endpoint."""
+    """
+    Health check endpoint.
+
+    Returns:
+        dict: Health check response
+
+    """
     return {
         "status": "healthy",
         "version": settings.app.version,

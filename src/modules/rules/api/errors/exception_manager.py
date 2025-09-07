@@ -6,14 +6,14 @@ from typing import TYPE_CHECKING
 from fastapi import HTTPException, status
 
 from modules.rules.domain.exceptions import (
+    BaseRuleExceptionError,
+    BaseSectionExceptionError,
     RuleAlreadyExistsError,
     RuleConfigurationError,
-    RuleException,
     RuleNotFoundError,
     RuleSqlGenerationError,
     RuleValidationError,
     SectionAlreadyExistsError,
-    SectionException,
     SectionNotFoundError,
     SectionValidationError,
 )
@@ -42,8 +42,8 @@ class ExceptionManager:
             SectionAlreadyExistsError: self._handle_already_exists_error,
             SectionValidationError: self._handle_validation_error,
             # Base exceptions
-            RuleException: self._handle_generic_rule_error,
-            SectionException: self._handle_generic_section_error,
+            BaseRuleExceptionError: self._handle_generic_rule_error,
+            BaseSectionExceptionError: self._handle_generic_section_error,
         }
 
     def handle_exception(self, exception: Exception) -> HTTPException:
@@ -62,12 +62,12 @@ class ExceptionManager:
         # Find the most specific handler
         for exc_type, handler in self._exception_handlers.items():
             if isinstance(exception, exc_type):
-                logger.warning(f"Handling {exception_type.__name__}: {exception}")
+                logger.warning("Handling %s: %s", exception_type.__name__, exception)
                 return handler(exception)
 
         # Fallback for unhandled exceptions
-        logger.error(f"Unhandled exception: {exception}")
-        return self._handle_generic_error(exception)
+        logger.error("Unhandled exception: %s", exception)
+        return self._handle_generic_error()
 
     def _handle_not_found_error(self, exception: Exception) -> HTTPException:
         """Handle not found errors."""
@@ -161,7 +161,7 @@ class ExceptionManager:
             ).dict(),
         )
 
-    def _handle_generic_error(self, exception: Exception) -> HTTPException:
+    def _handle_generic_error(self) -> HTTPException:
         """Handle generic unhandled errors."""
         return HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

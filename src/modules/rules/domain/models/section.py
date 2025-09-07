@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from datetime import datetime
-from enum import Enum
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -13,12 +12,8 @@ from modules.rules.domain.events.section_events import (
     SectionDescriptionUpdated,
     SectionNameUpdated,
 )
+from modules.rules.domain.value_objects.enums import SectionStatus
 from modules.rules.domain.value_objects.slug import SlugValueObject
-
-
-class SectionStatus(Enum):
-    ACTIVE = "ACTIVE"
-    INACTIVE = "INACTIVE"
 
 
 class CreateSectionDto(BaseModel):
@@ -55,6 +50,7 @@ class SectionEntity(BaseEntity):
             name=entity.name,
             slug=entity.slug,
             description=entity.description,
+            status=entity.status,
         )
         entity.add_domain_event(event)
 

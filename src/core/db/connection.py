@@ -4,6 +4,7 @@ import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
+from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine
 
@@ -32,17 +33,17 @@ class DatabaseManager:
 
             # Test connection
             async with self._engine.begin() as conn:
-                await conn.execute("SELECT 1")
+                await conn.execute(text("SELECT 1"))
 
             self._is_connected = True
             logger.info("Database connection established successfully")
 
-        except SQLAlchemyError as e:
-            logger.exception(f"Failed to connect to database: {e}")
+        except SQLAlchemyError:
+            logger.exception("Failed to connect to database")
             self._is_connected = False
             raise
-        except Exception as e:
-            logger.exception(f"Unexpected error during database connection: {e}")
+        except Exception:
+            logger.exception("Unexpected error during database connection")
             self._is_connected = False
             raise
 
@@ -58,8 +59,8 @@ class DatabaseManager:
             self._is_connected = False
             logger.info("Database connection closed successfully")
 
-        except Exception as e:
-            logger.exception(f"Error during database disconnection: {e}")
+        except Exception:
+            logger.exception("Error during database disconnection")
             raise
 
     @asynccontextmanager
@@ -80,8 +81,8 @@ class DatabaseManager:
         async with self._engine.begin() as connection:
             try:
                 yield connection
-            except Exception as e:
-                logger.exception(f"Error in database connection context: {e}")
+            except Exception:
+                logger.exception("Error in database connection context")
                 await connection.rollback()
                 raise
 
@@ -107,14 +108,14 @@ class DatabaseManager:
         """
         if not self.is_connected:
             return False
-
         try:
             async with self.get_connection() as conn:
                 await conn.execute("SELECT 1")
-            return True
-        except Exception as e:
-            logger.exception(f"Database health check failed: {e}")
+        except Exception:
+            logger.exception("Database health check failed")
             return False
+        else:
+            return True
 
     async def execute_raw_sql(self, sql: str, parameters: dict | None = None) -> any:
         """
@@ -135,8 +136,8 @@ class DatabaseManager:
             return await conn.execute(sql, parameters)
 
 
-# Global database manager instance
-_database_manager: DatabaseManager | None = None
+class _ManagerHolder:
+    instance: DatabaseManager | None = None
 
 
 async def get_database_manager() -> DatabaseManager:
@@ -147,19 +148,16 @@ async def get_database_manager() -> DatabaseManager:
         DatabaseManager: Global database manager instance
 
     """
-    global _database_manager
+    if _ManagerHolder.instance is None:
+        mgr = DatabaseManager()
+        await mgr.connect()
+        _ManagerHolder.instance = mgr
 
-    if _database_manager is None:
-        _database_manager = DatabaseManager()
-        await _database_manager.connect()
-
-    return _database_manager
+    return _ManagerHolder.instance
 
 
 async def close_database_manager() -> None:
     """Close global database manager."""
-    global _database_manager
-
-    if _database_manager is not None:
-        await _database_manager.disconnect()
-        _database_manager = None
+    if _ManagerHolder.instance is not None:
+        await _ManagerHolder.instance.disconnect()
+        _ManagerHolder.instance = None

@@ -1,1 +1,1 @@
-from .domain import RuleEntity, SectionEntity, SqlGenerator
+from .domain.models import RuleEntity, SectionEntity

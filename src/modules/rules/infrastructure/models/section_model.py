@@ -12,6 +12,7 @@ class SectionModel(Base, UUIDTimestampMixin):
     """Section persistence model for database storage."""
 
     __tablename__ = "sections"
+    __table_args__ = {"extend_existing": True}
 
     # Basic fields
     name: Mapped[str] = mapped_column(String(255), nullable=False)

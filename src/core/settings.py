@@ -5,7 +5,7 @@ Uses Pydantic for environment variable validation and type checking.
 
 from functools import lru_cache
 
-from pydantic import Field, validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -28,8 +28,8 @@ class PostgreSQLSettings(BaseSettings):
         """Generate PostgreSQL async connection URL."""
         return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
 
+    @field_validator("port")
     @classmethod
-    @validator("port")
     def validate_port(cls, v):
         """Validate PostgreSQL port range."""
         if not 1 <= v <= 65535:
@@ -57,16 +57,16 @@ class RedisSettings(BaseSettings):
             return f"redis://:{self.password}@{self.host}:{self.port}/{self.db}"
         return f"redis://{self.host}:{self.port}/{self.db}"
 
+    @field_validator("port")
     @classmethod
-    @validator("port")
     def validate_port(cls, v):
         """Validate Redis port range."""
         if not 1 <= v <= 65535:
             raise ValueError("Port must be between 1 and 65535")
         return v
 
+    @field_validator("db")
     @classmethod
-    @validator("db")
     def validate_db(cls, v):
         """Validate Redis database number."""
         if not 0 <= v <= 15:
@@ -122,16 +122,17 @@ class AppSettings(BaseSettings):
         env="BACKEND_CORS_ORIGINS",
     )
 
+    @field_validator("port")
     @classmethod
-    @validator("port")
     def validate_port(cls, v):
-        """Validate application port range."""
+        """Validate app port range."""
         if not 1 <= v <= 65535:
             raise ValueError("Port must be between 1 and 65535")
         return v
 
-    @validator("backend_cors_origins", pre=True)
-    def assemble_cors_origins(self, v):
+    @field_validator("backend_cors_origins", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v):
         """Parse CORS origins from environment variable or use defaults."""
         if isinstance(v, str) and not v.startswith("["):
             return [i.strip() for i in v.split(",")]
@@ -139,8 +140,9 @@ class AppSettings(BaseSettings):
             return v
         raise ValueError(v)
 
-    @validator("allowed_hosts", pre=True)
-    def assemble_allowed_hosts(self, v):
+    @field_validator("allowed_hosts", mode="before")
+    @classmethod
+    def assemble_allowed_hosts(cls, v):
         """Parse allowed hosts from environment variable or use defaults."""
         if isinstance(v, str) and not v.startswith("["):
             return [i.strip() for i in v.split(",")]

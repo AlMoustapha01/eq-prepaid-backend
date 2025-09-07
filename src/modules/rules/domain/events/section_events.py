@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from core.domain.domain_event import DomainEvent
+from modules.rules.domain.value_objects.enums import SectionStatus
 from modules.rules.domain.value_objects.slug import SlugValueObject
 
 
@@ -12,12 +13,18 @@ class SectionCreated(DomainEvent):
     name: str = ""
     slug: SlugValueObject = None
     description: str = ""
+    status: SectionStatus = SectionStatus.ACTIVE
 
     def get_event_type(self) -> str:
         return "section.created"
 
     def _get_event_data(self) -> dict[str, Any]:
-        return {"name": self.name, "slug": str(self.slug), "description": self.description}
+        return {
+            "name": self.name,
+            "slug": self.slug.value if self.slug else None,
+            "description": self.description,
+            "status": self.status,
+        }
 
 
 @dataclass

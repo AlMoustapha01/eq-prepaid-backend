@@ -10,12 +10,7 @@ from .lifecycle import (
     shutdown_database,
     wait_for_database,
 )
-from .mixins import (
-    TimestampMixin,
-    UUIDFieldMixin,
-    UUIDMixin,
-    UUIDStringMixin,
-)
+from .mixins import TimestampMixin, UUIDFieldMixin, UUIDMixin, UUIDStringMixin
 from .repository import (
     BaseMapper,
     BaseRepository,

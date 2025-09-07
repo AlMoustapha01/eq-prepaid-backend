@@ -58,8 +58,11 @@ class CorrelationIdMiddleware(BaseHTTPMiddleware):
 
         # Log request with correlation ID
         logger.info(
-            f"Request started - Method: {request.method}, "
-            f"URL: {request.url}, {self.header_name}: {correlation_id}"
+            "Request started - Method: %s, URL: %s, %s: %s",
+            request.method,
+            request.url,
+            self.header_name,
+            correlation_id,
         )
 
         # Process request
@@ -70,8 +73,10 @@ class CorrelationIdMiddleware(BaseHTTPMiddleware):
 
         # Log response with correlation ID
         logger.info(
-            f"Request completed - Status: {response.status_code}, "
-            f"{self.header_name}: {correlation_id}"
+            "Request completed - Status: %s, %s: %s",
+            response.status_code,
+            self.header_name,
+            correlation_id,
         )
 
         return response

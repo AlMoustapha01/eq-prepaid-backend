@@ -1,12 +1,16 @@
-"""Database lifecycle management utilities."""
+"""Database lifecycle management."""
 
 import asyncio
 import logging
-from collections.abc import AsyncGenerator
-from contextlib import asynccontextmanager
 
-from .connection import close_database_manager, get_database_manager
-from .session import get_session_factory
+from core.db.connection import get_database_manager
+from core.db.session import get_session_factory
+
+
+def _raise_health_check_error() -> None:
+    """Raise health check error."""
+    raise RuntimeError("Database health check failed")
+
 
 logger = logging.getLogger(__name__)
 
@@ -32,10 +36,10 @@ async def initialize_database() -> None:
         if await db_manager.health_check():
             logger.info("Database initialization completed successfully")
         else:
-            raise RuntimeError("Database health check failed")
+            _raise_health_check_error()
 
-    except Exception as e:
-        logger.exception(f"Database initialization failed: {e}")
+    except Exception:
+        logger.exception("Database initialization failed")
         raise
 
 
@@ -50,8 +54,8 @@ async def shutdown_database() -> None:
         await close_database_manager()
         logger.info("Database shutdown completed successfully")
 
-    except Exception as e:
-        logger.exception(f"Database shutdown failed: {e}")
+    except Exception:
+        logger.exception("Database shutdown failed")
         raise
 
 
@@ -89,10 +93,12 @@ async def wait_for_database(max_retries: int = 30, retry_interval: float = 1.0) 
         try:
             db_manager = await get_database_manager()
             if await db_manager.health_check():
-                logger.info(f"Database is available (attempt {attempt + 1})")
+                logger.info("Database is available (attempt %s)", attempt + 1)
                 return
         except Exception as e:
-            logger.warning(f"Database not available (attempt {attempt + 1}/{max_retries}): {e}")
+            logger.warning(
+                "Database not available (attempt %s/%s): %s", attempt + 1, max_retries, e
+            )
 
         if attempt < max_retries - 1:
             await asyncio.sleep(retry_interval)
@@ -116,7 +122,7 @@ async def check_database_health() -> dict:
         return {
             "status": "healthy" if is_healthy else "unhealthy",
             "connected": db_manager.is_connected,
-            "database_url": db_manager._config.database_url.split("@")[-1],  # Hide credentials
+            "database_url": db_manager.config.database_url.split("@")[-1],  # Hide credentials
         }
     except Exception as e:
         return {

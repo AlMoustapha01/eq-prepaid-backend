@@ -10,8 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.db import BaseRepository, BaseRepositoryPort
 from modules.rules.domain.models.rule import RuleEntity
 from modules.rules.domain.value_objects.enums import BalanceType, ProfileType, Status
-from src.modules.rules.infrastructure.mappers.rule_mapper import RuleMapper
-from src.modules.rules.infrastructure.models.rule_model import RuleModel
+from modules.rules.infrastructure.mappers.rule_mapper import RuleMapper
+from modules.rules.infrastructure.models.rule_model import RuleModel
 
 logger = logging.getLogger(__name__)
 
@@ -60,15 +60,15 @@ class RuleRepository(BaseRepository[RuleEntity, RuleModel, dict, UUID], RuleRepo
             # Convert rows to model instances
             models = []
             for row in rows:
-                model_dict = dict(row._mapping)
+                model_dict = row._asdict()
                 model = RuleModel(**model_dict)
                 models.append(model)
 
             # Convert to domain entities
             return self.mapper.to_domain_list(models)
 
-        except Exception as e:
-            logger.exception(f"Error finding rules by section_id {section_id}: {e}")
+        except Exception:
+            logger.exception("Error finding rules by section_id %s", section_id)
             raise
 
     async def find_by_status(self, status: Status) -> list[RuleEntity]:
@@ -81,15 +81,15 @@ class RuleRepository(BaseRepository[RuleEntity, RuleModel, dict, UUID], RuleRepo
             # Convert rows to model instances
             models = []
             for row in rows:
-                model_dict = dict(row._mapping)
+                model_dict = row._asdict()
                 model = RuleModel(**model_dict)
                 models.append(model)
 
             # Convert to domain entities
             return self.mapper.to_domain_list(models)
 
-        except Exception as e:
-            logger.exception(f"Error finding rules by status {status}: {e}")
+        except Exception:
+            logger.exception("Error finding rules by status %s", status)
             raise
 
     async def find_by_profile_type(self, profile_type: ProfileType) -> list[RuleEntity]:
@@ -104,15 +104,15 @@ class RuleRepository(BaseRepository[RuleEntity, RuleModel, dict, UUID], RuleRepo
             # Convert rows to model instances
             models = []
             for row in rows:
-                model_dict = dict(row._mapping)
+                model_dict = row._asdict()
                 model = RuleModel(**model_dict)
                 models.append(model)
 
             # Convert to domain entities
             return self.mapper.to_domain_list(models)
 
-        except Exception as e:
-            logger.exception(f"Error finding rules by profile_type {profile_type}: {e}")
+        except Exception:
+            logger.exception("Error finding rules by profile_type %s", profile_type)
             raise
 
     async def find_by_balance_type(self, balance_type: BalanceType) -> list[RuleEntity]:
@@ -127,15 +127,15 @@ class RuleRepository(BaseRepository[RuleEntity, RuleModel, dict, UUID], RuleRepo
             # Convert rows to model instances
             models = []
             for row in rows:
-                model_dict = dict(row._mapping)
+                model_dict = row._asdict()
                 model = RuleModel(**model_dict)
                 models.append(model)
 
             # Convert to domain entities
             return self.mapper.to_domain_list(models)
 
-        except Exception as e:
-            logger.exception(f"Error finding rules by balance_type {balance_type}: {e}")
+        except Exception:
+            logger.exception("Error finding rules by balance_type %s", balance_type)
             raise
 
     async def find_by_name(self, name: str) -> RuleEntity | None:
@@ -149,14 +149,14 @@ class RuleRepository(BaseRepository[RuleEntity, RuleModel, dict, UUID], RuleRepo
                 return None
 
             # Convert row to model instance
-            model_dict = dict(row._mapping)
+            model_dict = row._asdict()
             model = RuleModel(**model_dict)
 
             # Convert to domain entity
             return self.mapper.to_domain(model)
 
-        except Exception as e:
-            logger.exception(f"Error finding rule by name {name}: {e}")
+        except Exception:
+            logger.exception("Error finding rule by name %s", name)
             raise
 
     async def exists_by_name(self, name: str) -> bool:
@@ -166,6 +166,6 @@ class RuleRepository(BaseRepository[RuleEntity, RuleModel, dict, UUID], RuleRepo
             result = await self.session.execute(text(query), {"name": name})
             return result.scalar() or False
 
-        except Exception as e:
-            logger.exception(f"Error checking rule existence by name {name}: {e}")
+        except Exception:
+            logger.exception("Error checking rule existence by name %s", name)
             raise

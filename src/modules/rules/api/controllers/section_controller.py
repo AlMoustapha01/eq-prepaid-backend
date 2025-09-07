@@ -44,11 +44,11 @@ class SectionController:
 
         """
         try:
-            logger.info(f"Creating section: {request.name}")
+            logger.info("Creating section with name %s", request.name)
             return await self.create_section_use_case.execute(request)
         except Exception as e:
-            logger.exception(f"Section creation failed: {e}")
-            raise exception_manager.handle_exception(e)
+            logger.error("Section creation failed %s", e)
+            raise exception_manager.handle_exception(e) from e
 
     async def get_all_sections(self) -> list[SectionResponse]:
         """
@@ -65,8 +65,8 @@ class SectionController:
             logger.info("Getting all sections")
             return await self.get_all_sections_use_case.execute()
         except Exception as e:
-            logger.exception(f"Error getting all sections: {e}")
-            raise exception_manager.handle_exception(e)
+            logger.error("Error getting all sections %s", e)
+            raise exception_manager.handle_exception(e) from e
 
     async def get_section_by_id(self, section_id: UUID) -> SectionResponse:
         """
@@ -83,8 +83,8 @@ class SectionController:
 
         """
         try:
-            logger.info(f"Getting section by ID: {section_id}")
+            logger.info("Getting section by ID %s", section_id)
             return await self.get_section_by_id_use_case.execute(section_id)
         except Exception as e:
-            logger.exception(f"Error getting section by ID: {e}")
-            raise exception_manager.handle_exception(e)
+            logger.error("Error getting section by ID %s", section_id)
+            raise exception_manager.handle_exception(e) from e

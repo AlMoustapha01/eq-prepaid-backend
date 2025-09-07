@@ -9,7 +9,7 @@ from uuid import UUID, uuid4
 class DomainEvent(ABC):
     """Base class for all domain events"""
 
-    event_id: UUID = field(default_factory=uuid4)
+    aggregate_id: UUID = field(default_factory=uuid4)
     occurred_at: datetime = field(default_factory=datetime.now)
     event_version: int = 1
 
@@ -21,7 +21,7 @@ class DomainEvent(ABC):
         """Converts the event to a dictionary representation"""
         return {
             "event_type": self.get_event_type(),
-            "event_id": str(self.event_id),
+            "aggregate_id": str(self.aggregate_id),
             "occurred_at": self.occurred_at.isoformat(),
             "event_version": self.event_version,
             "data": self._get_event_data(),

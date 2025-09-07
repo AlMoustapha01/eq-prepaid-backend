@@ -17,3 +17,8 @@ class Status(Enum):
     DRAFT = "DRAFT"
     IN_PRODUCTION = "IN_PRODUCTION"
     TO_VALIDATE = "TO_VALIDATE"
+
+
+class SectionStatus(Enum):
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"

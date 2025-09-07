@@ -1,14 +1,7 @@
 """Rules application layer."""
 
-from .dtos.rule_dtos import (
-    CreateRuleRequest,
-    GetRulesSqlResponse,
-    RuleResponse,
-)
-from .dtos.section_dtos import (
-    CreateSectionRequest,
-    SectionResponse,
-)
+from .dtos.rule_dtos import CreateRuleRequest, GetRulesSqlResponse, RuleResponse
+from .dtos.section_dtos import CreateSectionRequest, SectionResponse
 from .use_cases.rule_use_cases import (
     CreateRuleUseCase,
     GetAllRulesPaginatedUseCase,

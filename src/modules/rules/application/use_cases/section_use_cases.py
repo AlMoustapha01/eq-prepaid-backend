@@ -3,14 +3,15 @@
 import logging
 from uuid import UUID
 
+from core.db import PaginationParams
+from modules.rules.application.dtos.section_dtos import (
+    CreateSectionRequest,
+    SectionResponse,
+)
 from modules.rules.domain.models.section import CreateSectionDto, SectionEntity
 from modules.rules.infrastructure.mappers.section_mapper import SectionMapper
 from modules.rules.infrastructure.repositories.section_repository import (
     SectionRepositoryPort,
-)
-from src.modules.rules.application.dtos.section_dtos import (
-    CreateSectionRequest,
-    SectionResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -37,7 +38,7 @@ class CreateSectionUseCase:
             ValueError: If section name already exists
 
         """
-        logger.info(f"Creating section with name: {request.name}")
+        logger.info("Creating section with name %s", request.name)
 
         # Check if section with same name already exists
         existing_section = await self.section_repository.find_by_name(request.name)
@@ -78,9 +79,8 @@ class GetAllSectionsUseCase:
         logger.info("Getting all sections")
 
         # Get all sections from repository
-        sections = await self.section_repository.find_all_paginated(
-            pagination={"page": 1, "size": 1000}  # Large size to get all
-        )
+        pagination = PaginationParams(page=1, size=100)  # Max allowed size
+        sections = await self.section_repository.find_all_paginated(pagination=pagination)
 
         # Convert to responses
         responses = []
@@ -88,7 +88,7 @@ class GetAllSectionsUseCase:
             response_dict = self.mapper.to_response(section)
             responses.append(SectionResponse(**response_dict))
 
-        logger.info(f"Found {len(responses)} sections")
+        logger.info("Found %s sections", len(responses))
         return responses
 
 
@@ -113,7 +113,7 @@ class GetSectionByIdUseCase:
             ValueError: If section not found
 
         """
-        logger.info(f"Getting section by ID: {section_id}")
+        logger.info("Getting section by ID %s", section_id)
 
         # Find section by ID
         section = await self.section_repository.find_by_id(section_id)

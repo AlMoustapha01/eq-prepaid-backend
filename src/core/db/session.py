@@ -36,8 +36,8 @@ class AsyncSessionFactory:
             )
             logger.info("Session factory initialized successfully")
 
-        except Exception as e:
-            logger.exception(f"Failed to initialize session factory: {e}")
+        except Exception:
+            logger.exception("Failed to initialize session factory")
             raise
 
     @asynccontextmanager
@@ -59,12 +59,12 @@ class AsyncSessionFactory:
             try:
                 yield session
                 await session.commit()
-            except SQLAlchemyError as e:
-                logger.exception(f"Database error in session: {e}")
+            except SQLAlchemyError:
+                logger.exception("Database error in session")
                 await session.rollback()
                 raise
-            except Exception as e:
-                logger.exception(f"Unexpected error in session: {e}")
+            except Exception:
+                logger.exception("Unexpected error in session")
                 await session.rollback()
                 raise
 
@@ -90,8 +90,8 @@ class AsyncSessionFactory:
         return self._session_factory is not None
 
 
-# Global session factory instance
-_session_factory: AsyncSessionFactory | None = None
+class _SessionHolder:
+    instance: AsyncSessionFactory | None = None
 
 
 async def get_session_factory() -> AsyncSessionFactory:
@@ -102,13 +102,11 @@ async def get_session_factory() -> AsyncSessionFactory:
         AsyncSessionFactory: Global session factory instance
 
     """
-    global _session_factory
+    if _SessionHolder.instance is None:
+        _SessionHolder.instance = AsyncSessionFactory()
+        await _SessionHolder.instance.initialize()
 
-    if _session_factory is None:
-        _session_factory = AsyncSessionFactory()
-        await _session_factory.initialize()
-
-    return _session_factory
+    return _SessionHolder.instance
 
 
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:

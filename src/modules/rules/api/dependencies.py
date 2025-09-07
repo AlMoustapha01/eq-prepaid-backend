@@ -1,5 +1,7 @@
 """API dependencies for dependency injection."""
 
+from typing import Annotated
+
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,11 +18,15 @@ async def get_session() -> AsyncSession:
         yield session
 
 
-def get_section_repository(session: AsyncSession = Depends(get_session)) -> SectionRepository:
+def get_section_repository(
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> SectionRepository:
     """Get section repository instance."""
     return SectionRepository(session)
 
 
-def get_rule_repository(session: AsyncSession = Depends(get_session)) -> RuleRepository:
+def get_rule_repository(
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> RuleRepository:
     """Get rule repository instance."""
     return RuleRepository(session)

@@ -39,12 +39,12 @@ async def create_rule(
     description="Retrieve all rules with pagination support",
 )
 async def get_all_rules_paginated(
+    rule_repository: Annotated[RuleRepository, Depends(get_rule_repository)],
     page: Annotated[int, Query(ge=1, description="Page number (1-based)")] = 1,
     size: Annotated[int, Query(ge=1, le=100, description="Page size")] = 10,
     status_filter: Annotated[str | None, Query(description="Filter by status")] = None,
     profile_type_filter: Annotated[str | None, Query(description="Filter by profile type")] = None,
     balance_type_filter: Annotated[str | None, Query(description="Filter by balance type")] = None,
-    rule_repository: RuleRepository = Depends(get_rule_repository),
 ) -> PaginatedResult[RuleResponse]:
     """Get all rules with pagination."""
     # Build filters
@@ -81,8 +81,11 @@ async def get_rule_by_id(
 async def get_rule_sql_by_id(
     rule_id: UUID,
     parameters: dict[str, Any] | None = None,
-    rule_repository: RuleRepository = Depends(get_rule_repository),
+    rule_repository: Annotated[RuleRepository, Depends(get_rule_repository)] = None,
 ) -> GetRulesSqlResponse:
     """Get rule SQL by ID with optional parameters."""
+    if rule_repository is None:
+        rule_repository = get_rule_repository()
+
     controller = RuleController(rule_repository)
     return await controller.get_rule_sql_by_id(rule_id, parameters)

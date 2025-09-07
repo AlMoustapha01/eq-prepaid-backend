@@ -1,6 +1,8 @@
 import re
 from dataclasses import dataclass
 
+from slugify import slugify
+
 
 @dataclass(frozen=True)
 class SlugValueObject:
@@ -28,9 +30,7 @@ class SlugValueObject:
             raise ValueError("Name cannot be empty")
 
         # Convert to lowercase and replace spaces/special chars with hyphens
-        slug = re.sub(r"[^\w\s-]", "", name.lower())
-        slug = re.sub(r"[\s_-]+", "-", slug)
-        slug = slug.strip("-")
+        slug = slugify(name)
 
         if not slug:
             raise ValueError("Cannot generate valid slug from provided name")

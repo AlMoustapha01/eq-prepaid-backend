@@ -3,7 +3,7 @@
 from core.db import BaseMapper
 from modules.rules.domain.models.section import SectionEntity
 from modules.rules.domain.value_objects.slug import SlugValueObject
-from src.modules.rules.infrastructure.models.section_model import SectionModel
+from modules.rules.infrastructure.models.section_model import SectionModel
 
 
 class SectionMapper(BaseMapper[SectionEntity, SectionModel, dict]):
@@ -27,7 +27,7 @@ class SectionMapper(BaseMapper[SectionEntity, SectionModel, dict]):
             name=domain_entity.name,
             slug=domain_entity.slug.value if domain_entity.slug else "",
             description=domain_entity.description,
-            status=domain_entity.status,
+            status=domain_entity.status.value if domain_entity.status else None,
         )
 
         # Set ID if exists (for updates)
@@ -47,7 +47,7 @@ class SectionMapper(BaseMapper[SectionEntity, SectionModel, dict]):
             "name": domain_entity.name,
             "slug": domain_entity.slug.value if domain_entity.slug else None,
             "description": domain_entity.description,
-            "status": domain_entity.status.value if domain_entity.status else None,
+            "status": domain_entity.status,
             "created_at": domain_entity.created_at.isoformat()
             if domain_entity.created_at
             else None,

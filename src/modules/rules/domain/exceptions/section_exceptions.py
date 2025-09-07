@@ -3,7 +3,7 @@
 from uuid import UUID
 
 
-class SectionException(Exception):
+class BaseSectionExceptionError(Exception):
     """Base exception for section domain errors."""
 
     def __init__(self, message: str, code: str | None = None):
@@ -12,7 +12,7 @@ class SectionException(Exception):
         self.code = code or self.__class__.__name__
 
 
-class SectionNotFoundError(SectionException):
+class SectionNotFoundError(BaseSectionExceptionError):
     """Exception raised when a section is not found."""
 
     def __init__(
@@ -35,7 +35,7 @@ class SectionNotFoundError(SectionException):
         self.slug = slug
 
 
-class SectionAlreadyExistsError(SectionException):
+class SectionAlreadyExistsError(BaseSectionExceptionError):
     """Exception raised when trying to create a section that already exists."""
 
     def __init__(self, section_name: str | None = None, slug: str | None = None):
@@ -50,7 +50,7 @@ class SectionAlreadyExistsError(SectionException):
         self.slug = slug
 
 
-class SectionValidationError(SectionException):
+class SectionValidationError(BaseSectionExceptionError):
     """Exception raised when section validation fails."""
 
     def __init__(self, message: str, field: str | None = None):

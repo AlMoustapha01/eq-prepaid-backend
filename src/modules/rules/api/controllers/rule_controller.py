@@ -47,11 +47,11 @@ class RuleController:
 
         """
         try:
-            logger.info(f"Creating rule: {request.name}")
+            logger.info("Creating rule %s", request.name)
             return await self.create_rule_use_case.execute(request)
         except Exception as e:
-            logger.exception(f"Rule creation failed: {e}")
-            raise exception_manager.handle_exception(e)
+            logger.exception("Rule creation failed")
+            raise exception_manager.handle_exception(e) from e
 
     async def get_all_rules_paginated(
         self, page: int = 1, size: int = 10, filters: dict[str, Any] | None = None
@@ -72,11 +72,11 @@ class RuleController:
 
         """
         try:
-            logger.info(f"Getting paginated rules - page: {page}, size: {size}")
+            logger.info("Getting paginated rules - page: %s, size: %s", page, size)
             return await self.get_all_rules_paginated_use_case.execute(page, size, filters)
         except Exception as e:
-            logger.exception(f"Error getting paginated rules: {e}")
-            raise exception_manager.handle_exception(e)
+            logger.exception("Error getting paginated rules")
+            raise exception_manager.handle_exception(e) from e
 
     async def get_rule_sql_by_id(
         self, rule_id: UUID, parameters: dict[str, Any] | None = None
@@ -96,11 +96,11 @@ class RuleController:
 
         """
         try:
-            logger.info(f"Getting SQL for rule ID: {rule_id}")
+            logger.info("Getting SQL for rule ID %s", rule_id)
             return await self.get_rule_sql_by_id_use_case.execute(rule_id, parameters)
         except Exception as e:
-            logger.exception(f"Error getting rule SQL: {e}")
-            raise exception_manager.handle_exception(e)
+            logger.exception("Error getting rule SQL")
+            raise exception_manager.handle_exception(e) from e
 
     async def get_rule_by_id(self, rule_id: UUID) -> RuleResponse:
         """
@@ -117,8 +117,8 @@ class RuleController:
 
         """
         try:
-            logger.info(f"Getting rule by ID: {rule_id}")
+            logger.info("Getting rule by ID %s", rule_id)
             return await self.get_rule_by_id_use_case.execute(rule_id)
         except Exception as e:
-            logger.exception(f"Error getting rule by ID: {e}")
-            raise exception_manager.handle_exception(e)
+            logger.exception("Error getting rule by ID")
+            raise exception_manager.handle_exception(e) from e

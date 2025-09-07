@@ -3,7 +3,7 @@
 from uuid import UUID
 
 
-class RuleException(Exception):
+class BaseRuleExceptionError(Exception):
     """Base exception for rule domain errors."""
 
     def __init__(self, message: str, code: str | None = None):
@@ -12,7 +12,7 @@ class RuleException(Exception):
         self.code = code or self.__class__.__name__
 
 
-class RuleNotFoundError(RuleException):
+class RuleNotFoundError(BaseRuleExceptionError):
     """Exception raised when a rule is not found."""
 
     def __init__(self, rule_id: UUID | None = None, rule_name: str | None = None):
@@ -27,7 +27,7 @@ class RuleNotFoundError(RuleException):
         self.rule_name = rule_name
 
 
-class RuleAlreadyExistsError(RuleException):
+class RuleAlreadyExistsError(BaseRuleExceptionError):
     """Exception raised when trying to create a rule that already exists."""
 
     def __init__(self, rule_name: str):
@@ -36,7 +36,7 @@ class RuleAlreadyExistsError(RuleException):
         self.rule_name = rule_name
 
 
-class RuleValidationError(RuleException):
+class RuleValidationError(BaseRuleExceptionError):
     """Exception raised when rule validation fails."""
 
     def __init__(self, message: str, field: str | None = None):
@@ -44,7 +44,7 @@ class RuleValidationError(RuleException):
         self.field = field
 
 
-class RuleConfigurationError(RuleException):
+class RuleConfigurationError(BaseRuleExceptionError):
     """Exception raised when rule configuration is invalid."""
 
     def __init__(self, message: str, config_field: str | None = None):
@@ -52,7 +52,7 @@ class RuleConfigurationError(RuleException):
         self.config_field = config_field
 
 
-class RuleSqlGenerationError(RuleException):
+class RuleSqlGenerationError(BaseRuleExceptionError):
     """Exception raised when SQL generation fails."""
 
     def __init__(self, message: str, rule_id: UUID | None = None):

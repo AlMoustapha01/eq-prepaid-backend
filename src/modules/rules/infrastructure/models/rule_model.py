@@ -2,10 +2,8 @@
 
 from uuid import UUID
 
-from sqlalchemy import JSON
+from sqlalchemy import ARRAY, JSON, String
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import String
-from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -17,6 +15,7 @@ class RuleModel(Base, UUIDTimestampMixin):
     """Rule persistence model for database storage."""
 
     __tablename__ = "rules"
+    __table_args__ = {"extend_existing": True}
 
     # Basic fields
     name: Mapped[str] = mapped_column(String(255), nullable=False)
