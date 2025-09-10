@@ -4,15 +4,10 @@ import logging
 from uuid import UUID
 
 from core.db import PaginationParams
-from modules.rules.application.dtos.section_dtos import (
-    CreateSectionRequest,
-    SectionResponse,
-)
+from modules.rules.application.dtos.section_dtos import CreateSectionRequest, SectionResponse
 from modules.rules.domain.models.section import CreateSectionDto, SectionEntity
 from modules.rules.infrastructure.mappers.section_mapper import SectionMapper
-from modules.rules.infrastructure.repositories.section_repository import (
-    SectionRepositoryPort,
-)
+from modules.rules.infrastructure.repositories.section_repository import SectionRepositoryPort
 
 logger = logging.getLogger(__name__)
 

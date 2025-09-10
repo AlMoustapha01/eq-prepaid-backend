@@ -5,6 +5,7 @@ repos:
     rev: 6.0.1
     hooks:
       - id: isort
+        args: ["--settings-path=pyproject.toml"]
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.3.0
     hooks:
@@ -20,16 +21,13 @@ repos:
       - id: name-tests-test
         args: [--pytest-test-first]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    # Ruff version.
     rev: v0.12.11
     hooks:
-      # Run the linter.
       - id: ruff
         args:
           - "--select=ALL"
-          - "--ignore=RUF100,RUF013,BLE001,COM812,ISC001,D100,D101,D102,D104,D105,D106,D107,D200,D203,D205,D211,D212,D400,D401,D415,E203,E266,E501,ANN001,ANN101,ANN102,ANN201,ANN204,ANN206,ANN401,S101,S104,S602,ERA001,PGH003,PLR0913,PLR2004,PLC0415,TRY004,TRY400,TRY003,N803,N815,EM101,EM102,INP001,F401,F821,DTZ005,SIM102,PERF401"
+          - "--ignore=I001,BLE001,COM812,ISC001,D100,D101,D104,D105,D107,D205,D211,D212,D400,D415,E203,E266,ANN201,ANN204,S101,S602,ERA001,PLR0913,PLR2004,N803,N815,EM101,TRY003,INP001,RUF100,RUF013,D102,D106,D200,D203,D401,E501,ANN001,ANN101,ANN102,ANN206,ANN401,S104,PGH003,PLC0415,TRY004,TRY400,EM102,F401,F821,DTZ005,SIM102,PERF401"
           - "--line-length=100"
-      # Run the formatter.
       - id: ruff-format
   - repo: https://github.com/PyCQA/pylint
     rev: v3.3.8

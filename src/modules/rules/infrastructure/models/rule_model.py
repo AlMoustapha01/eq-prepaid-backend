@@ -1,14 +1,32 @@
 """Rule persistence model."""
 
+import json
 from uuid import UUID
 
-from sqlalchemy import ARRAY, JSON, String
-from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import JSON, Enum as SQLEnum, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.types import TypeDecorator
 
 from core.db import Base, UUIDTimestampMixin
 from modules.rules.domain.value_objects.enums import BalanceType, ProfileType, Status
+
+
+class StringListType(TypeDecorator):
+    """Custom type to handle string arrays for cross-database compatibility."""
+
+    impl = Text
+    cache_ok = True
+
+    def process_bind_param(self, value):
+        if value is not None:
+            return json.dumps(value)
+        return value
+
+    def process_result_value(self, value):
+        if value is not None:
+            return json.loads(value)
+        return value
 
 
 class RuleModel(Base, UUIDTimestampMixin):
@@ -27,7 +45,7 @@ class RuleModel(Base, UUIDTimestampMixin):
     section_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), nullable=False)
 
     # Configuration and metadata
-    database_table_name: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False)
+    database_table_name: Mapped[list[str]] = mapped_column(StringListType, nullable=False)
     config: Mapped[dict] = mapped_column(JSON, nullable=False)
 
     def __repr__(self) -> str:

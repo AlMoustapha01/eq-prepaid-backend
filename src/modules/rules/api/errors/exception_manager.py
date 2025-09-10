@@ -77,7 +77,7 @@ class ExceptionManager:
                 error="Not Found",
                 message=str(exception),
                 code=getattr(exception, "code", "NOT_FOUND"),
-            ).dict(),
+            ).model_dump(),
         )
 
     def _handle_already_exists_error(self, exception: Exception) -> HTTPException:
@@ -88,7 +88,7 @@ class ExceptionManager:
                 error="Conflict",
                 message=str(exception),
                 code=getattr(exception, "code", "ALREADY_EXISTS"),
-            ).dict(),
+            ).model_dump(),
         )
 
     def _handle_validation_error(self, exception: Exception) -> HTTPException:
@@ -104,7 +104,7 @@ class ExceptionManager:
                 message=str(exception),
                 code=getattr(exception, "code", "VALIDATION_ERROR"),
                 details=details if details else None,
-            ).dict(),
+            ).model_dump(),
         )
 
     def _handle_configuration_error(self, exception: Exception) -> HTTPException:
@@ -120,7 +120,7 @@ class ExceptionManager:
                 message=str(exception),
                 code=getattr(exception, "code", "CONFIGURATION_ERROR"),
                 details=details if details else None,
-            ).dict(),
+            ).model_dump(),
         )
 
     def _handle_sql_generation_error(self, exception: Exception) -> HTTPException:
@@ -136,7 +136,7 @@ class ExceptionManager:
                 message=str(exception),
                 code=getattr(exception, "code", "SQL_GENERATION_ERROR"),
                 details=details if details else None,
-            ).dict(),
+            ).model_dump(),
         )
 
     def _handle_generic_rule_error(self, exception: Exception) -> HTTPException:
@@ -147,7 +147,7 @@ class ExceptionManager:
                 error="Rule Error",
                 message=str(exception),
                 code=getattr(exception, "code", "RULE_ERROR"),
-            ).dict(),
+            ).model_dump(),
         )
 
     def _handle_generic_section_error(self, exception: Exception) -> HTTPException:
@@ -158,7 +158,7 @@ class ExceptionManager:
                 error="Section Error",
                 message=str(exception),
                 code=getattr(exception, "code", "SECTION_ERROR"),
-            ).dict(),
+            ).model_dump(),
         )
 
     def _handle_generic_error(self) -> HTTPException:
@@ -169,7 +169,7 @@ class ExceptionManager:
                 error="Internal Server Error",
                 message="An unexpected error occurred",
                 code="INTERNAL_SERVER_ERROR",
-            ).dict(),
+            ).model_dump(),
         )
 
 

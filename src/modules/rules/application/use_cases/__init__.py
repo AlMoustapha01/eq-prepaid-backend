@@ -6,11 +6,7 @@ from .rule_use_cases import (
     GetRuleByIdUseCase,
     GetRuleSqlByIdUseCase,
 )
-from .section_use_cases import (
-    CreateSectionUseCase,
-    GetAllSectionsUseCase,
-    GetSectionByIdUseCase,
-)
+from .section_use_cases import CreateSectionUseCase, GetAllSectionsUseCase, GetSectionByIdUseCase
 
 __all__ = [
     "CreateRuleUseCase",

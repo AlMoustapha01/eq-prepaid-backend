@@ -4,18 +4,13 @@ import logging
 from uuid import UUID
 
 from modules.rules.api.errors.exception_manager import exception_manager
-from modules.rules.application.dtos.section_dtos import (
-    CreateSectionRequest,
-    SectionResponse,
-)
+from modules.rules.application.dtos.section_dtos import CreateSectionRequest, SectionResponse
 from modules.rules.application.use_cases.section_use_cases import (
     CreateSectionUseCase,
     GetAllSectionsUseCase,
     GetSectionByIdUseCase,
 )
-from modules.rules.infrastructure.repositories.section_repository import (
-    SectionRepositoryPort,
-)
+from modules.rules.infrastructure.repositories.section_repository import SectionRepositoryPort
 
 logger = logging.getLogger(__name__)
 

@@ -7,13 +7,8 @@ from fastapi import APIRouter, Depends, status
 
 from modules.rules.api.controllers.section_controller import SectionController
 from modules.rules.api.dependencies import get_section_repository
-from modules.rules.application.dtos.section_dtos import (
-    CreateSectionRequest,
-    SectionResponse,
-)
-from modules.rules.infrastructure.repositories.section_repository import (
-    SectionRepository,
-)
+from modules.rules.application.dtos.section_dtos import CreateSectionRequest, SectionResponse
+from modules.rules.infrastructure.repositories.section_repository import SectionRepository
 
 section_router = APIRouter(prefix="/sections", tags=["sections"])
 

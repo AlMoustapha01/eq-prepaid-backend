@@ -7,9 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.db import get_session_context
 from modules.rules.infrastructure.repositories.rule_repository import RuleRepository
-from modules.rules.infrastructure.repositories.section_repository import (
-    SectionRepository,
-)
+from modules.rules.infrastructure.repositories.section_repository import SectionRepository
 
 
 async def get_session() -> AsyncSession:

@@ -6,17 +6,17 @@ Uses Pydantic for environment variable validation and type checking.
 from functools import lru_cache
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class PostgreSQLSettings(BaseSettings):
     """PostgreSQL database configuration settings."""
 
-    host: str = Field(default="localhost", env="POSTGRES_HOST")
-    port: int = Field(default=5432, env="POSTGRES_PORT")
-    user: str = Field(default="eq_prepaid_user", env="POSTGRES_USER")
-    password: str = Field(default="eq_prepaid_password_123", env="POSTGRES_PASSWORD")
-    database: str = Field(default="eq_prepaid_db", env="POSTGRES_DB")
+    host: str = Field(default="localhost")
+    port: int = Field(default=5432)
+    user: str = Field(default="eq_prepaid_user")
+    password: str = Field(default="eq_prepaid_password_123")
+    database: str = Field(default="eq_prepaid_db")
 
     @property
     def database_url(self) -> str:
@@ -36,19 +36,20 @@ class PostgreSQLSettings(BaseSettings):
             raise ValueError("Port must be between 1 and 65535")
         return v
 
-    class Config:
-        env_prefix = "POSTGRES_"
-        case_sensitive = False
-        extra = "allow"
+    model_config = SettingsConfigDict(
+        env_prefix="POSTGRES_",
+        case_sensitive=False,
+        extra="allow",
+    )
 
 
 class RedisSettings(BaseSettings):
     """Redis cache configuration settings."""
 
-    host: str = Field(default="localhost", env="REDIS_HOST")
-    port: int = Field(default=6379, env="REDIS_PORT")
-    password: str | None = Field(default=None, env="REDIS_PASSWORD")
-    db: int = Field(default=0, env="REDIS_DB")
+    host: str = Field(default="localhost")
+    port: int = Field(default=6379)
+    password: str | None = Field(default=None)
+    db: int = Field(default=0)
 
     @property
     def redis_url(self) -> str:
@@ -73,31 +74,32 @@ class RedisSettings(BaseSettings):
             raise ValueError("Redis database must be between 0 and 15")
         return v
 
-    class Config:
-        env_prefix = "REDIS_"
-        case_sensitive = False
-        extra = "allow"
+    model_config = SettingsConfigDict(
+        env_prefix="REDIS_",
+        case_sensitive=False,
+        extra="allow",
+    )
 
 
 class AppSettings(BaseSettings):
     """Main application configuration settings."""
 
-    app_name: str = Field(default="EQ Prepaid Backend", env="APP_NAME")
+    app_name: str = Field(default="EQ Prepaid Backend")
     project_description: str = Field(
-        default="Backend API for EQ Prepaid system with rules management", env="PROJECT_DESCRIPTION"
+        default="Backend API for EQ Prepaid system with rules management"
     )
-    debug: bool = Field(default=False, env="DEBUG")
-    version: str = Field(default="1.0.0", env="APP_VERSION")
-    host: str = Field(default="0.0.0.0", env="APP_HOST")  # nosec B104
-    port: int = Field(default=8000, env="APP_PORT")
+    debug: bool = Field(default=False)
+    version: str = Field(default="1.0.0")
+    host: str = Field(default="0.0.0.0")  # nosec B104
+    port: int = Field(default=8000)
 
     # API Configuration
-    api_v1_prefix: str = Field(default="/api/v1", env="API_V1_PREFIX")
-    root_path: str = Field(default="", env="ROOT_PATH")
+    api_v1_prefix: str = Field(default="/api/v1")
+    root_path: str = Field(default="")
 
     # Contact Information
-    contact_name: str = Field(default="EQ Prepaid Team", env="CONTACT_NAME")
-    contact_email: str = Field(default="support@eqprepaid.com", env="CONTACT_EMAIL")
+    contact_name: str = Field(default="EQ Prepaid Team")
+    contact_email: str = Field(default="support@eqprepaid.com")
 
     # Security Settings
     allowed_hosts: list[str] = Field(
@@ -107,7 +109,6 @@ class AppSettings(BaseSettings):
             "*.localhost",
             "*.eqprepaid.com",  # Replace with your actual domain
         ],
-        env="ALLOWED_HOSTS",
     )
 
     backend_cors_origins: list[str] = Field(
@@ -119,7 +120,6 @@ class AppSettings(BaseSettings):
             "https://localhost:3000",
             "https://localhost:8080",
         ],
-        env="BACKEND_CORS_ORIGINS",
     )
 
     @field_validator("port")
@@ -150,10 +150,11 @@ class AppSettings(BaseSettings):
             return v
         raise ValueError(v)
 
-    class Config:
-        env_prefix = "APP_"
-        case_sensitive = False
-        extra = "allow"
+    model_config = SettingsConfigDict(
+        env_prefix="APP_",
+        case_sensitive=False,
+        extra="allow",
+    )
 
 
 class Settings(BaseSettings):
@@ -164,11 +165,9 @@ class Settings(BaseSettings):
     redis: RedisSettings = RedisSettings()
     app: AppSettings = AppSettings()
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
-        extra = "allow"
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="allow"
+    )
 
 
 @lru_cache

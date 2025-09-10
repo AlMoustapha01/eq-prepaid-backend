@@ -2,8 +2,11 @@
 
 import asyncio
 import logging
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 
-from core.db.connection import get_database_manager
+from core.db.base import Base
+from core.db.connection import close_database_manager, get_database_manager
 from core.db.session import get_session_factory
 
 
@@ -130,3 +133,56 @@ async def check_database_health() -> dict:
             "connected": False,
             "error": str(e),
         }
+
+
+async def create_tables() -> None:
+    """
+    Create all database tables for testing.
+
+    This function creates all tables defined in the Base metadata.
+    Should be used in test setup.
+    """
+    try:
+        logger.info("Creating database tables...")
+        db_manager = await get_database_manager()
+
+        async with db_manager.engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+
+        logger.info("Database tables created successfully")
+
+    except Exception:
+        logger.exception("Failed to create database tables")
+        raise
+
+
+async def drop_tables() -> None:
+    """
+    Drop all database tables for testing.
+
+    This function drops all tables defined in the Base metadata.
+    Should be used in test cleanup.
+    """
+    try:
+        logger.info("Dropping database tables...")
+        db_manager = await get_database_manager()
+
+        async with db_manager.engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+
+        logger.info("Database tables dropped successfully")
+
+    except Exception:
+        logger.exception("Failed to drop database tables")
+        raise
+
+
+async def recreate_tables() -> None:
+    """
+    Recreate all database tables for testing.
+
+    This function drops and then creates all tables.
+    Useful for test isolation.
+    """
+    await drop_tables()
+    await create_tables()

@@ -5,8 +5,11 @@ from .config import DatabaseConfig
 from .connection import DatabaseManager, get_database_manager
 from .lifecycle import (
     check_database_health,
+    create_tables,
     database_lifespan,
+    drop_tables,
     initialize_database,
+    recreate_tables,
     shutdown_database,
     wait_for_database,
 )
@@ -42,12 +45,15 @@ __all__ = [
     "UUIDStringTimestampMixin",
     "UUIDTimestampMixin",
     "check_database_health",
+    "create_tables",
     "database_lifespan",
+    "drop_tables",
     "get_async_session",
     "get_database_manager",
     "get_session_context",
     # Lifecycle management
     "initialize_database",
+    "recreate_tables",
     "shutdown_database",
     "wait_for_database",
 ]
