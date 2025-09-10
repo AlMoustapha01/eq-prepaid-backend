@@ -8,6 +8,8 @@ src_path = Path(__file__).parent / "src"
 sys.path.insert(0, str(src_path))
 
 # Import and expose the FastAPI app
+# ruff: noqa: E402
+from src.app import app
 
 if __name__ == "__main__":
     import uvicorn

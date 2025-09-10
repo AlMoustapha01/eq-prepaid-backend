@@ -191,7 +191,7 @@ class RuleConfig:
         return tables
 
     @classmethod
-    def from_dict(cls) -> "RuleConfig":
+    def from_dict(cls, data: dict[str, Any]) -> "RuleConfig":  # noqa: ARG003
         """
         Creates a RuleConfig instance from a dictionary.
 

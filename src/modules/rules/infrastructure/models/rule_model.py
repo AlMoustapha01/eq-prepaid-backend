@@ -18,12 +18,12 @@ class StringListType(TypeDecorator):
     impl = Text
     cache_ok = True
 
-    def process_bind_param(self, value):
+    def process_bind_param(self, value, dialect):  # noqa: ARG002
         if value is not None:
             return json.dumps(value)
         return value
 
-    def process_result_value(self, value):
+    def process_result_value(self, value, dialect):  # noqa: ARG002
         if value is not None:
             return json.loads(value)
         return value

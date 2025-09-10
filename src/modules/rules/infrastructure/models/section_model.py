@@ -1,7 +1,6 @@
 """Section persistence model."""
 
-from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import String, Text
+from sqlalchemy import Enum as SQLEnum, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from core.db import Base, UUIDTimestampMixin
