@@ -1,5 +1,7 @@
 """Main FastAPI application entry point."""
 
+import logging
+import os
 import uuid
 
 from fastapi import FastAPI

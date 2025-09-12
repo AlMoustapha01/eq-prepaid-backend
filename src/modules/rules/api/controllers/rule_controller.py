@@ -50,7 +50,7 @@ class RuleController:
             logger.info("Creating rule %s", request.name)
             return await self.create_rule_use_case.execute(request)
         except Exception as e:
-            logger.exception("Rule creation failed")
+            logger.error("Rule creation failed")
             raise exception_manager.handle_exception(e) from e
 
     async def get_all_rules_paginated(
