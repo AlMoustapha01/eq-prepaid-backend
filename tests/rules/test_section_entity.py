@@ -4,6 +4,7 @@ from datetime import datetime
 from uuid import UUID
 
 import pytest
+from pydantic_core import ValidationError
 
 from modules.rules.domain.events.section_events import (
     SectionActivated,
@@ -287,10 +288,14 @@ class TestSectionEntity:
         assert dto.name == "Valid Name"
         assert dto.description == "Valid Description"
 
-        # Test with empty strings (should be allowed by Pydantic)
-        dto_empty = CreateSectionDto(name="", description="")
-        assert dto_empty.name == ""
-        assert dto_empty.description == ""
+        # Test with empty strings (should raise validation errors)
+        with pytest.raises(ValidationError) as exc_info:
+            CreateSectionDto(name="", description="")
+
+        errors = exc_info.value.errors()
+        assert len(errors) == 2
+        assert any(error["loc"] == ("name",) for error in errors)
+        assert any(error["loc"] == ("description",) for error in errors)
 
     def test_section_entity_immutable_id(self):
         """Test that section ID doesn't change after creation."""
