@@ -2,7 +2,7 @@
 
 from core.db import BaseMapper
 from modules.rules.domain.models.rule import RuleEntity
-from modules.rules.domain.value_objects.rule_config import RuleConfig
+from modules.rules.domain.value_objects.rule_config.root import RuleConfig
 from modules.rules.infrastructure.models.rule_model import RuleModel
 
 

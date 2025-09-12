@@ -3,7 +3,7 @@ from typing import Any
 from uuid import UUID
 
 from core.domain.domain_event import DomainEvent
-from modules.rules.domain.value_objects.enums import BalanceType, ProfileType, Status
+from modules.rules.domain.value_objects.enums import BalanceType, ProfileType, RuleStatus
 
 
 @dataclass
@@ -15,7 +15,7 @@ class RuleCreated(DomainEvent):
     profile_type: ProfileType = None
     balance_type: BalanceType = None
     section_id: UUID = None
-    status: Status = None
+    status: RuleStatus = None
 
     def get_event_type(self) -> str:
         return "rule.created"
@@ -116,12 +116,18 @@ class RuleProductionStarted(DomainEvent):
 
     aggregate_id: UUID = None
     rule_name: str = ""
+    old_status: RuleStatus = None
+    new_status: RuleStatus = None
 
     def get_event_type(self) -> str:
         return "rule.production_started"
 
     def _get_event_data(self) -> dict[str, Any]:
-        return {"rule_name": self.rule_name}
+        return {
+            "rule_name": self.rule_name,
+            "old_status": self.old_status.value if self.old_status else None,
+            "new_status": self.new_status.value if self.new_status else None,
+        }
 
 
 @dataclass
@@ -130,12 +136,18 @@ class RuleToValidateStarted(DomainEvent):
 
     aggregate_id: UUID = None
     rule_name: str = ""
+    old_status: RuleStatus = None
+    new_status: RuleStatus = None
 
     def get_event_type(self) -> str:
         return "rule.to_validate_started"
 
     def _get_event_data(self) -> dict[str, Any]:
-        return {"rule_name": self.rule_name}
+        return {
+            "rule_name": self.rule_name,
+            "old_status": self.old_status.value if self.old_status else None,
+            "new_status": self.new_status.value if self.new_status else None,
+        }
 
 
 @dataclass
@@ -144,9 +156,35 @@ class RuleDraftStarted(DomainEvent):
 
     aggregate_id: UUID = None
     rule_name: str = ""
+    old_status: RuleStatus = None
+    new_status: RuleStatus = None
 
     def get_event_type(self) -> str:
         return "rule.draft_started"
 
     def _get_event_data(self) -> dict[str, Any]:
-        return {"rule_name": self.rule_name}
+        return {
+            "rule_name": self.rule_name,
+            "old_status": self.old_status.value if self.old_status else None,
+            "new_status": self.new_status.value if self.new_status else None,
+        }
+
+
+@dataclass
+class RuleArchived(DomainEvent):
+    """Event raised when a rule is archived"""
+
+    aggregate_id: UUID = None
+    rule_name: str = ""
+    old_status: RuleStatus = None
+    new_status: RuleStatus = None
+
+    def get_event_type(self) -> str:
+        return "rule.archived"
+
+    def _get_event_data(self) -> dict[str, Any]:
+        return {
+            "rule_name": self.rule_name,
+            "old_status": self.old_status.value if self.old_status else None,
+            "new_status": self.new_status.value if self.new_status else None,
+        }

@@ -1,12 +1,12 @@
 """Rule use cases implementation."""
 
 import logging
-from typing import Any
+from typing import Any, NoReturn
 from uuid import UUID
 
 from core.db import PaginatedResult, PaginationParams
 from modules.rules.domain.models.rule import CreateRuleDto, RuleEntity
-from modules.rules.domain.value_objects.rule_config import RuleConfig
+from modules.rules.domain.value_objects.rule_config.root import RuleConfig
 from modules.rules.infrastructure.mappers.rule_mapper import RuleMapper
 from modules.rules.infrastructure.repositories.rule_repository import RuleRepositoryPort
 from src.modules.rules.application.dtos.rule_dtos import (
@@ -131,6 +131,11 @@ class GetRuleSqlByIdUseCase:
     def __init__(self, rule_repository: RuleRepositoryPort):
         self.rule_repository = rule_repository
 
+    def _raise_config_error(self, msg: str) -> NoReturn:
+        from modules.rules.domain.exceptions import RuleSqlGenerationError
+
+        raise RuleSqlGenerationError(msg, rule_id=self.rule_id)
+
     async def execute(
         self, rule_id: UUID, parameters: dict[str, Any] | None = None
     ) -> GetRulesSqlResponse:
@@ -150,23 +155,30 @@ class GetRuleSqlByIdUseCase:
         """
         logger.info("Getting SQL for rule ID: %s", rule_id)
 
-        # Find rule by ID
         rule = await self.rule_repository.find_by_id(rule_id)
         if not rule:
             from modules.rules.domain.exceptions import RuleNotFoundError
 
             raise RuleNotFoundError(rule_id=rule_id)
 
-        # Generate SQL
+        self.rule_id = rule_id
+
         try:
-            sql = rule.generate_sql(parameters or {})
+            if not rule.config:
+                self._raise_config_error("Rule configuration is missing")
+
+            if isinstance(rule.config, dict):
+                rule_config = RuleConfig.from_dict(rule.config)
+            elif isinstance(rule.config, RuleConfig):
+                rule_config = rule.config
+            else:
+                self._raise_config_error("Invalid rule configuration format")
+
+            sql = rule_config.to_sql()
+
         except Exception as e:
-            from modules.rules.domain.exceptions import RuleSqlGenerationError
+            self._raise_config_error("Failed to generate SQL: " + str(e))
 
-            msg = "Failed to generate SQL: " + str(e)
-            raise RuleSqlGenerationError(msg, rule_id=rule_id) from e
-
-        # Create response
         return GetRulesSqlResponse(
             rule_id=str(rule.id), rule_name=rule.name, sql=sql, parameters_used=parameters
         )

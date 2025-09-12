@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.db import BaseRepository, BaseRepositoryPort
 from modules.rules.domain.models.rule import RuleEntity
-from modules.rules.domain.value_objects.enums import BalanceType, ProfileType, Status
+from modules.rules.domain.value_objects.enums import BalanceType, ProfileType, RuleStatus
 from modules.rules.infrastructure.mappers.rule_mapper import RuleMapper
 from modules.rules.infrastructure.models.rule_model import RuleModel
 
@@ -24,7 +24,7 @@ class RuleRepositoryPort(BaseRepositoryPort[RuleEntity, RuleModel, dict, UUID], 
         """Find all rules by section ID."""
 
     @abstractmethod
-    async def find_by_status(self, status: Status) -> list[RuleEntity]:
+    async def find_by_status(self, status: RuleStatus) -> list[RuleEntity]:
         """Find all rules by status."""
 
     @abstractmethod
@@ -71,7 +71,7 @@ class RuleRepository(BaseRepository[RuleEntity, RuleModel, dict, UUID], RuleRepo
             logger.exception("Error finding rules by section_id %s", section_id)
             raise
 
-    async def find_by_status(self, status: Status) -> list[RuleEntity]:
+    async def find_by_status(self, status: RuleStatus) -> list[RuleEntity]:
         """Find all rules by status using raw SQL."""
         try:
             query = "SELECT * FROM rules WHERE status = :status ORDER BY created_at DESC"

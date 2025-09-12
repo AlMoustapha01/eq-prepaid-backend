@@ -1,14 +1,15 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from core.domain.base_entity import BaseEntity
 
 # SqlGenerator imported lazily to avoid circular imports
 from modules.rules.domain.events.rule_events import (
+    RuleArchived,
     RuleBalanceTypeUpdated,
     RuleConfigurationUpdated,
     RuleCreated,
@@ -16,13 +17,15 @@ from modules.rules.domain.events.rule_events import (
     RuleNameUpdated,
     RuleProductionStarted,
     RuleProfileTypeUpdated,
-    RuleSqlGenerated,
     RuleToValidateStarted,
 )
-from modules.rules.domain.value_objects.enums import BalanceType, ProfileType, Status
-from modules.rules.domain.value_objects.rule_config import RuleConfig
+from modules.rules.domain.value_objects.enums import BalanceType, ProfileType, RuleStatus
+from modules.rules.domain.value_objects.rule_config.root import RuleConfig
 
 
+# ----------------------------------------------------
+# DTO avec validations Pydantic
+# ----------------------------------------------------
 class CreateRuleDto(BaseModel):
     name: str
     profile_type: ProfileType
@@ -31,16 +34,43 @@ class CreateRuleDto(BaseModel):
     section_id: UUID
     config: RuleConfig
 
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("Rule name cannot be empty")
+        if len(v) > 255:
+            raise ValueError("Rule name too long (max 255 chars)")
+        return v
+
+    @field_validator("database_table_name")
+    @classmethod
+    def validate_tables(cls, v: list[str]) -> list[str]:
+        if not v or len(v) == 0:
+            raise ValueError("At least one database table is required")
+        return v
+
+
+# ----------------------------------------------------
+# State Machine : valid transitions between statuses
+# ----------------------------------------------------
+ALLOWED_TRANSITIONS: dict[RuleStatus, list[RuleStatus]] = {
+    RuleStatus.DRAFT: [RuleStatus.TO_VALIDATE],
+    RuleStatus.TO_VALIDATE: [RuleStatus.IN_PRODUCTION, RuleStatus.DRAFT],
+    RuleStatus.IN_PRODUCTION: [RuleStatus.ARCHIVED],
+    RuleStatus.ARCHIVED: [],
+}
+
 
 @dataclass
 class RuleEntity(BaseEntity):
     name: str = ""
     profile_type: ProfileType = None
     balance_type: BalanceType = None
-    database_table_name: list[str] = None
+    database_table_name: list[str] = field(default_factory=list)
     section_id: UUID = None
     config: RuleConfig = None
-    status: Status = None
+    status: RuleStatus = None
 
     def validate(self) -> None:
         """Validates that all business invariants of the entity are respected"""
@@ -90,39 +120,34 @@ class RuleEntity(BaseEntity):
         """All tables used in configuration must be listed in database_table_name"""
         if not self.config:
             return
+        missing = set(self.config.get_table_names()) - set(self.database_table_name)
+        if missing:
+            raise ValueError(
+                f"Tables {missing} used in configuration but not listed in database_table_name"
+            )
 
-        config_tables = self.config.get_table_names()
-        for table in config_tables:
-            if table not in self.database_table_name:
-                msg = f"Table '{table}' used in configuration but not listed in database_table_name"
-                raise ValueError(msg)
+    def _change_status(self, new_status: RuleStatus, event_cls) -> None:
+        """State machine : applique une transition de statut si valide."""
+        if new_status == self.status:
+            return  # pas de changement inutile
+        if new_status not in ALLOWED_TRANSITIONS.get(self.status, []):
+            raise ValueError(f"Invalid transition: {self.status} → {new_status}")
 
-    def generate_sql(self, parameters: dict[str, Any] | None = None) -> str:
-        """
-        Generates SQL query from the rule's configuration
+        old_status = self.status
+        self.status = new_status
 
-        Args:
-            parameters: Dictionary of parameter values to substitute in the query
-
-        Returns:
-            Generated SQL query string
-
-        """
-        from modules.rules.domain.services.sql_generator import SqlGenerator
-
-        generator = SqlGenerator()
-        sql = generator.generate_sql(self.config, parameters)
+        self.update_timestamp()
+        self.validate()
 
         # Publish domain event
-        event = RuleSqlGenerated(
+        event = event_cls(
             aggregate_id=self.id,
             occurred_at=datetime.now(),
             rule_name=self.name,
-            parameters_count=len(parameters) if parameters else 0,
+            old_status=old_status,
+            new_status=new_status,
         )
-        self.add_domain_event(event)
-
-        return sql
+        self._record_event(event)
 
     def get_required_parameters(self) -> list[str]:
         """Returns list of required parameter names for this rule"""
@@ -141,45 +166,6 @@ class RuleEntity(BaseEntity):
             for name, param in self.config.parameters.items()
         }
 
-    def make_production(self) -> None:
-        """Makes the rule production"""
-        if self.status != Status.IN_PRODUCTION:
-            self.status = Status.IN_PRODUCTION
-            self.update_timestamp()
-            self.validate()
-
-            # Publish domain event
-            event = RuleProductionStarted(
-                aggregate_id=self.id, occurred_at=datetime.now(), rule_name=self.name
-            )
-            self.add_domain_event(event)
-
-    def make_to_validate(self) -> None:
-        """Makes the rule to validate"""
-        if self.status != Status.TO_VALIDATE:
-            self.status = Status.TO_VALIDATE
-            self.update_timestamp()
-            self.validate()
-
-            # Publish domain event
-            event = RuleToValidateStarted(
-                aggregate_id=self.id, occurred_at=datetime.now(), rule_name=self.name
-            )
-            self.add_domain_event(event)
-
-    def make_draft(self) -> None:
-        """Makes the rule draft"""
-        if self.status != Status.DRAFT:
-            self.status = Status.DRAFT
-            self.update_timestamp()
-            self.validate()
-
-            # Publish domain event
-            event = RuleDraftStarted(
-                aggregate_id=self.id, occurred_at=datetime.now(), rule_name=self.name
-            )
-            self.add_domain_event(event)
-
     def update_name(self, new_name: str) -> None:
         """Updates the rule name"""
         if self.name != new_name:
@@ -195,7 +181,7 @@ class RuleEntity(BaseEntity):
                 old_name=old_name,
                 new_name=self.name,
             )
-            self.add_domain_event(event)
+            self._record_event(event)
 
     def update_profile_type(self, new_profile_type: ProfileType) -> None:
         """Updates the rule profile type"""
@@ -209,10 +195,10 @@ class RuleEntity(BaseEntity):
             event = RuleProfileTypeUpdated(
                 aggregate_id=self.id,
                 occurred_at=datetime.now(),
-                old_profile_type=old_profile_type,
-                new_profile_type=self.profile_type,
+                old_profile_type=old_profile_type.value,
+                new_profile_type=self.profile_type.value,
             )
-            self.add_domain_event(event)
+            self._record_event(event)
 
     def update_balance_type(self, new_balance_type: BalanceType) -> None:
         """Updates the rule balance type"""
@@ -226,10 +212,10 @@ class RuleEntity(BaseEntity):
             event = RuleBalanceTypeUpdated(
                 aggregate_id=self.id,
                 occurred_at=datetime.now(),
-                old_balance_type=old_balance_type,
-                new_balance_type=self.balance_type,
+                old_balance_type=old_balance_type.value,
+                new_balance_type=self.balance_type.value,
             )
-            self.add_domain_event(event)
+            self._record_event(event)
 
     def update_configuration(self, new_config: RuleConfig) -> None:
         """Updates the rule configuration"""
@@ -239,48 +225,23 @@ class RuleEntity(BaseEntity):
 
         # Publish domain event
         event = RuleConfigurationUpdated(
-            aggregate_id=self.id, occurred_at=datetime.now(), rule_name=self.name
+            aggregate_id=self.id,
+            occurred_at=datetime.now(),
+            rule_name=self.name,
         )
-        self.add_domain_event(event)
+        self._record_event(event)
 
     def move_to_production(self) -> None:
-        """Moves the rule to production status"""
-        if self.status != Status.IN_PRODUCTION:
-            self.status = Status.IN_PRODUCTION
-            self.update_timestamp()
-            self.validate()
-
-            # Publish domain event
-            event = RuleProductionStarted(
-                aggregate_id=self.id, occurred_at=datetime.now(), rule_name=self.name
-            )
-            self.add_domain_event(event)
+        self._change_status(RuleStatus.IN_PRODUCTION, RuleProductionStarted)
 
     def move_to_validation(self) -> None:
-        """Moves the rule to validation status"""
-        if self.status != Status.TO_VALIDATE:
-            self.status = Status.TO_VALIDATE
-            self.update_timestamp()
-            self.validate()
-
-            # Publish domain event
-            event = RuleToValidateStarted(
-                aggregate_id=self.id, occurred_at=datetime.now(), rule_name=self.name
-            )
-            self.add_domain_event(event)
+        self._change_status(RuleStatus.TO_VALIDATE, RuleToValidateStarted)
 
     def move_to_draft(self) -> None:
-        """Moves the rule to draft status"""
-        if self.status != Status.DRAFT:
-            self.status = Status.DRAFT
-            self.update_timestamp()
-            self.validate()
+        self._change_status(RuleStatus.DRAFT, RuleDraftStarted)
 
-            # Publish domain event
-            event = RuleDraftStarted(
-                aggregate_id=self.id, occurred_at=datetime.now(), rule_name=self.name
-            )
-            self.add_domain_event(event)
+    def move_to_archived(self) -> None:
+        self._change_status(RuleStatus.ARCHIVED, RuleArchived)
 
     @classmethod
     def create(cls, dto: CreateRuleDto) -> "RuleEntity":
@@ -293,8 +254,10 @@ class RuleEntity(BaseEntity):
             database_table_name=dto.database_table_name,
             section_id=dto.section_id,
             config=dto.config,
-            status=Status.DRAFT,
+            status=RuleStatus.DRAFT,
         )
+
+        # Ensure validation is performed
         entity.validate()
 
         # Publish domain event
@@ -307,6 +270,6 @@ class RuleEntity(BaseEntity):
             section_id=entity.section_id,
             status=entity.status,
         )
-        entity.add_domain_event(event)
+        entity._record_event(event)
 
         return entity

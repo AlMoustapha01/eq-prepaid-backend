@@ -127,8 +127,21 @@ def sample_rule_data():
         "balance_type": BalanceType.MAIN_BALANCE.value,
         "database_table_name": ["test_table"],
         "config": {
-            "conditions": [{"field": "balance", "operator": ">=", "value": 100}],
-            "actions": [{"type": "deduct", "amount": 50}],
+            "select": {
+                "fields": [{"name": "balance", "expression": "balance", "alias": None}],
+                "aggregations": [],
+            },
+            "from": {"main_table": "test_table", "alias": None},
+            "joins": [],
+            "conditions": {
+                "where": [
+                    {"field": "balance", "operator": ">=", "value": 100, "logical_operator": None}
+                ]
+            },
+            "group_by": [],
+            "having": [],
+            "order_by": [],
+            "parameters": {},
         },
     }
 
