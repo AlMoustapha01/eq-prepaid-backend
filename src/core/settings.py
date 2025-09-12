@@ -1,12 +1,71 @@
 """
-Configuration settings for the EQ Prepaid Backend application.
-Uses Pydantic for environment variable validation and type checking.
+Configuration settings améliorée avec support du logging.
 """
 
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class LoggingSettings(BaseSettings):
+    """Logging system configuration."""
+
+    # Log level
+    level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(default="INFO")
+
+    # Log files
+    file_path: str = Field(default="logs/app.log")
+    max_file_size_mb: int = Field(default=100, description="Maximum file size in MB")
+    backup_count: int = Field(default=10, description="Number of backup files")
+
+    # Rotation
+    rotate_by_time: bool = Field(default=False, description="Rotation by time instead of size")
+    retention_days: int = Field(default=7, description="Retention period in days")
+
+    # Format and colors
+    use_colors: bool = Field(default=True, description="Enable colors in console output")
+    correlation_id_length: int = Field(default=32, description="Correlation ID length")
+
+    # Specific loggers
+    suppress_noisy_loggers: bool = Field(default=True, description="Suppress verbose loggers")
+
+    @field_validator("max_file_size_mb")
+    @classmethod
+    def validate_file_size(cls, v):
+        """Validate the maximum file size."""
+        if v <= 0:
+            raise ValueError("max_file_size_mb must be positive")
+        if v > 1000:  # 1GB max
+            raise ValueError("max_file_size_mb cannot exceed 1000MB")
+        return v
+
+    @field_validator("backup_count")
+    @classmethod
+    def validate_backup_count(cls, v):
+        """Validate the number of backup files."""
+        if v < 0:
+            raise ValueError("backup_count must be non-negative")
+        if v > 50:
+            raise ValueError("backup_count cannot exceed 50")
+        return v
+
+    @field_validator("retention_days")
+    @classmethod
+    def validate_retention_days(cls, v):
+        """Validate the retention period."""
+        if v < 0:
+            raise ValueError("retention_days must be non-negative")
+        if v > 365:
+            raise ValueError("retention_days cannot exceed 365")
+        return v
+
+    model_config = SettingsConfigDict(
+        env_prefix="LOG_",
+        case_sensitive=False,
+        extra="allow",
+    )
 
 
 class PostgreSQLSettings(BaseSettings):
@@ -164,6 +223,7 @@ class Settings(BaseSettings):
     postgres: PostgreSQLSettings = PostgreSQLSettings()
     redis: RedisSettings = RedisSettings()
     app: AppSettings = AppSettings()
+    logging: LoggingSettings = LoggingSettings()
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="allow"

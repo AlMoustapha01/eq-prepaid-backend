@@ -13,7 +13,7 @@ class BaseEntity(ABC):
     id: UUID
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
-    _domain_events: list[DomainEvent] = field(default_factory=list, init=False)
+    _domain_events: list[DomainEvent] = field(default_factory=list, init=False, repr=False)
 
     @abstractmethod
     def validate(self) -> None:
@@ -45,10 +45,14 @@ class BaseEntity(ABC):
         """Adds a domain event to the entity"""
         self._domain_events.append(event)
 
-    def get_domain_events(self) -> list[DomainEvent]:
+    def get_domain_events(self) -> tuple[DomainEvent]:
         """Returns all domain events for this entity"""
-        return self._domain_events.copy()
+        return tuple(self._domain_events)
 
     def clear_domain_events(self) -> None:
         """Clears all domain events from the entity"""
         self._domain_events.clear()
+
+    def _record_event(self, event: DomainEvent) -> None:
+        """Adds a domain event to the entity."""
+        self._domain_events.append(event)
